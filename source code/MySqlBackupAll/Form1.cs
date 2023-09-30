@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using MySqlConnector;
 using System.IO;
+using System.Threading;
 
 namespace MySqlBackupAll
 {
@@ -24,8 +25,12 @@ namespace MySqlBackupAll
         DateTime timeProcessStart = DateTime.Now;
         bool hasError = false;
         string errmsg = "";
-
         string constr = "";
+
+        Task mySchedulerTask;
+
+        bool schedulerIsRunning;
+        bool scheduledTaskIsAllowed = false;
 
         public Form1()
         {
@@ -65,10 +70,10 @@ namespace MySqlBackupAll
             this.ResumeLayout();
             this.PerformLayout();
 
-            if (isBackup)
-                MessageBox.Show($"{count} databases exported at\r\n\r\n{lbFolder.Text}");
-            else
-                MessageBox.Show($"{count} databases imported from\r\n\r\n{lbFolder.Text}");
+            //if (isBackup)
+            //    MessageBox.Show($"{count} databases exported at\r\n\r\n{lbFolder.Text}");
+            //else
+            //    MessageBox.Show($"{count} databases imported from\r\n\r\n{lbFolder.Text}");
         }
 
         private void Bw_DoWork(object sender, DoWorkEventArgs e)
@@ -79,6 +84,20 @@ namespace MySqlBackupAll
                     DoBackup();
                 else
                     DoRestore();
+
+                if (schedulerIsRunning)
+                {
+                    this.Invoke(new Action(() =>
+                    {
+                        if (radioButtonDaily.Checked)
+                            dateTimePicker1.Value = DateTime.Now.AddDays(1);
+                        else if (radioButtonWeekly.Checked)
+                            dateTimePicker1.Value = DateTime.Now.AddDays(7);
+                    }));
+                    schedulerIsRunning = false;
+
+
+                }
             }
             catch (Exception ex)
             {
@@ -167,7 +186,7 @@ namespace MySqlBackupAll
                         cmd.CommandText = $"use `{db}`";
                         cmd.ExecuteNonQuery();
 
-                        string file = Path.Combine(lbFolder.Text, $"{db}.sql");
+                        string file = Path.Combine(lbFolder.Text, $"{db}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss-fff}.sql");
 
                         using (MySqlBackup mb = new MySqlBackup(cmd))
                         {
@@ -202,6 +221,8 @@ namespace MySqlBackupAll
             timeProcessStart = DateTime.Now;
             txtProgress.Text = "Start at " + timeProcessStart.ToString("yyyy-MM-dd HH:mm:ss ffff") + "\r\n\r\n";
             this.Refresh();
+
+
 
             if (constr.Length == 0)
             {
@@ -280,50 +301,127 @@ namespace MySqlBackupAll
 
         void Backup()
         {
-string connstr = "server=localhost;user=root;pwd=1234;sslmode=none;convertdatetime=true;";
+            string connstr = "server=localhost;user=root;pwd=1234;sslmode=none;convertdatetime=true;";
 
-using (MySqlConnection conn = new MySqlConnection(connstr))
-{
-    using (MySqlCommand cmd = new MySqlCommand())
-    {
-        using (MySqlBackup mb = new MySqlBackup(cmd))
-        {
-            conn.Open();
-            cmd.Connection = conn;
-
-            cmd.CommandText = "show databases;";
-            MySqlDataAdapter da = new MySqlDataAdapter(cmd);
-            DataTable dtDbList = new DataTable();
-            da.Fill(dtDbList);
-
-            string defaultFolder = "C:\\backup_folder";
-
-
-            string defaultBackupFolder = "C:\\backup_folder";
-            string[] files = System.IO.Directory.GetFiles(defaultBackupFolder);
-
-            foreach (string file in files)
+            using (MySqlConnection conn = new MySqlConnection(connstr))
             {
-                if (file.ToLower().EndsWith(".sql"))
+                using (MySqlCommand cmd = new MySqlCommand())
                 {
-                    string dbName = System.IO.Path.GetFileNameWithoutExtension(file);
+                    using (MySqlBackup mb = new MySqlBackup(cmd))
+                    {
+                        conn.Open();
+                        cmd.Connection = conn;
 
-                    cmd.CommandText = "create database if not exists `" + dbName + "`";
-                    cmd.ExecuteNonQuery();
+                        cmd.CommandText = "show databases;";
+                        MySqlDataAdapter da = new MySqlDataAdapter(cmd);
+                        DataTable dtDbList = new DataTable();
+                        da.Fill(dtDbList);
 
-                    cmd.CommandText = "use `" + dbName + "`";
-                    cmd.ExecuteNonQuery();
+                        string defaultFolder = "C:\\backup_folder";
 
-                    mb.ImportFromFile(file);
+
+                        string defaultBackupFolder = "C:\\backup_folder";
+                        string[] files = System.IO.Directory.GetFiles(defaultBackupFolder);
+
+                        foreach (string file in files)
+                        {
+                            if (file.ToLower().EndsWith(".sql"))
+                            {
+                                string dbName = System.IO.Path.GetFileNameWithoutExtension(file);
+
+                                cmd.CommandText = "create database if not exists `" + dbName + "`";
+                                cmd.ExecuteNonQuery();
+
+                                cmd.CommandText = "use `" + dbName + "`";
+                                cmd.ExecuteNonQuery();
+
+                                mb.ImportFromFile(file);
+                            }
+                        }
+
+                        conn.Close();
+                    }
                 }
             }
-
-            conn.Close();
         }
-    }
-}
 
+        private void btnTurnAutomaticServiceOn_Click(object sender, EventArgs e)
+        {
+            if (lbFolder.Text.Length == 0)
+            {
+                MessageBox.Show("Folder is not set");
+                return;
+            }
 
+            if (!Directory.Exists(lbFolder.Text))
+            {
+                MessageBox.Show("Selected folder is not existed.");
+                return;
+            }
+            btnTurnAutomaticServiceOn.Enabled = false;
+            dateTimePicker1.Enabled = false;
+            scheduledTaskIsAllowed = true;
+
+            //hack, when a radiobutton group's button gets disabled, the group selects the next button as checked
+            bool radioButtonDailyChecked = radioButtonDaily.Checked;
+            bool radioButtonWeeklyChecked = radioButtonWeekly.Checked;
+            radioButtonDaily.Enabled = false;
+            radioButtonWeekly.Enabled = false;
+            radioButtonDaily.Checked = radioButtonDailyChecked;
+            radioButtonWeekly.Checked = radioButtonWeeklyChecked;
+
+            var originalColor = labelServiceIsRunning.BackColor;
+            labelServiceIsRunning.BackColor = Color.LimeGreen;
+            labelServiceIsRunning.Enabled = true;
+            btnStopAutomaticService.Enabled = true;
+
+            mySchedulerTask = Task.Factory.StartNew(() =>
+            {
+                while (scheduledTaskIsAllowed)
+                {
+                    if (!schedulerIsRunning)
+                    {
+                        int result = DateTime.Compare(DateTime.Now, dateTimePicker1.Value);
+                        
+                        if (result == 1 && !schedulerIsRunning)
+                        {
+                            schedulerIsRunning = true;
+                            isBackup = true;
+
+                            this.Invoke(new Action(() =>
+                            {
+                                btnStopAutomaticService.Enabled = true;
+                                if (!LoadData())
+                                {
+                                    return;
+                                }
+
+                                bw.RunWorkerAsync();
+                            }));
+                        }
+
+                    }
+                    Thread.Sleep(100);
+                }
+                this.Invoke(new Action(() =>
+                {
+                    btnTurnAutomaticServiceOn.Enabled = true;
+                    btnStopAutomaticService.Enabled = false;
+                    dateTimePicker1.Enabled = true;
+                    radioButtonDaily.Enabled = true;
+                    radioButtonWeekly.Enabled = true;
+                    labelServiceIsRunning.BackColor = originalColor;
+                    labelServiceIsRunning.Enabled = false;
+                }));
+            });
+
+            
+
+        }
+
+        private void btnStopAutomaticService_Click(object sender, EventArgs e)
+        {
+            scheduledTaskIsAllowed = false;
         }
     }
 }

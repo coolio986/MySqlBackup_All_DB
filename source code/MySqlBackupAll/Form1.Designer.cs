@@ -39,6 +39,15 @@
             this.txtConnStr = new System.Windows.Forms.TextBox();
             this.cbExportTableStructure = new System.Windows.Forms.CheckBox();
             this.cbExportRows = new System.Windows.Forms.CheckBox();
+            this.dateTimePicker1 = new System.Windows.Forms.DateTimePicker();
+            this.btnTurnAutomaticServiceOn = new System.Windows.Forms.Button();
+            this.btnStopAutomaticService = new System.Windows.Forms.Button();
+            this.lblNextBackup = new System.Windows.Forms.Label();
+            this.radioButtonDaily = new System.Windows.Forms.RadioButton();
+            this.radioButtonWeekly = new System.Windows.Forms.RadioButton();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.labelServiceIsRunning = new System.Windows.Forms.Label();
+            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // btSetFolder
@@ -87,12 +96,12 @@
             // 
             this.txtProgress.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
             this.txtProgress.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
-            this.txtProgress.Location = new System.Drawing.Point(20, 152);
+            this.txtProgress.Location = new System.Drawing.Point(20, 228);
             this.txtProgress.Multiline = true;
             this.txtProgress.Name = "txtProgress";
             this.txtProgress.ReadOnly = true;
             this.txtProgress.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.txtProgress.Size = new System.Drawing.Size(707, 342);
+            this.txtProgress.Size = new System.Drawing.Size(730, 352);
             this.txtProgress.TabIndex = 8;
             // 
             // label1
@@ -117,7 +126,7 @@
             // 
             this.txtConnStr.Location = new System.Drawing.Point(188, 73);
             this.txtConnStr.Name = "txtConnStr";
-            this.txtConnStr.Size = new System.Drawing.Size(538, 26);
+            this.txtConnStr.Size = new System.Drawing.Size(562, 26);
             this.txtConnStr.TabIndex = 11;
             // 
             // cbExportTableStructure
@@ -144,11 +153,99 @@
             this.cbExportRows.Text = "Export Rows";
             this.cbExportRows.UseVisualStyleBackColor = true;
             // 
+            // dateTimePicker1
+            // 
+            this.dateTimePicker1.CustomFormat = "MM/dd/yyyy hh:mm:ss tt";
+            this.dateTimePicker1.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.dateTimePicker1.Location = new System.Drawing.Point(519, 150);
+            this.dateTimePicker1.Name = "dateTimePicker1";
+            this.dateTimePicker1.Size = new System.Drawing.Size(231, 26);
+            this.dateTimePicker1.TabIndex = 15;
+            // 
+            // btnTurnAutomaticServiceOn
+            // 
+            this.btnTurnAutomaticServiceOn.Location = new System.Drawing.Point(422, 184);
+            this.btnTurnAutomaticServiceOn.Name = "btnTurnAutomaticServiceOn";
+            this.btnTurnAutomaticServiceOn.Size = new System.Drawing.Size(161, 36);
+            this.btnTurnAutomaticServiceOn.TabIndex = 16;
+            this.btnTurnAutomaticServiceOn.Text = "Backup Automagically";
+            this.btnTurnAutomaticServiceOn.UseVisualStyleBackColor = true;
+            this.btnTurnAutomaticServiceOn.Click += new System.EventHandler(this.btnTurnAutomaticServiceOn_Click);
+            // 
+            // btnStopAutomaticService
+            // 
+            this.btnStopAutomaticService.Enabled = false;
+            this.btnStopAutomaticService.Location = new System.Drawing.Point(589, 184);
+            this.btnStopAutomaticService.Name = "btnStopAutomaticService";
+            this.btnStopAutomaticService.Size = new System.Drawing.Size(161, 36);
+            this.btnStopAutomaticService.TabIndex = 17;
+            this.btnStopAutomaticService.Text = "Stop Automagic Backup";
+            this.btnStopAutomaticService.UseVisualStyleBackColor = true;
+            this.btnStopAutomaticService.Click += new System.EventHandler(this.btnStopAutomaticService_Click);
+            // 
+            // lblNextBackup
+            // 
+            this.lblNextBackup.AutoSize = true;
+            this.lblNextBackup.Location = new System.Drawing.Point(425, 153);
+            this.lblNextBackup.Name = "lblNextBackup";
+            this.lblNextBackup.Size = new System.Drawing.Size(88, 20);
+            this.lblNextBackup.TabIndex = 18;
+            this.lblNextBackup.Text = "Next backup:";
+            // 
+            // radioButtonDaily
+            // 
+            this.radioButtonDaily.AutoSize = true;
+            this.radioButtonDaily.Checked = true;
+            this.radioButtonDaily.Location = new System.Drawing.Point(3, 12);
+            this.radioButtonDaily.Name = "radioButtonDaily";
+            this.radioButtonDaily.Size = new System.Drawing.Size(56, 24);
+            this.radioButtonDaily.TabIndex = 20;
+            this.radioButtonDaily.TabStop = true;
+            this.radioButtonDaily.Text = "Daily";
+            this.radioButtonDaily.UseVisualStyleBackColor = true;
+            // 
+            // radioButtonWeekly
+            // 
+            this.radioButtonWeekly.AutoSize = true;
+            this.radioButtonWeekly.Location = new System.Drawing.Point(64, 13);
+            this.radioButtonWeekly.Name = "radioButtonWeekly";
+            this.radioButtonWeekly.Size = new System.Drawing.Size(72, 24);
+            this.radioButtonWeekly.TabIndex = 21;
+            this.radioButtonWeekly.TabStop = true;
+            this.radioButtonWeekly.Text = "Weekly";
+            this.radioButtonWeekly.UseVisualStyleBackColor = true;
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.radioButtonDaily);
+            this.groupBox1.Controls.Add(this.radioButtonWeekly);
+            this.groupBox1.Location = new System.Drawing.Point(429, 101);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(159, 43);
+            this.groupBox1.TabIndex = 22;
+            this.groupBox1.TabStop = false;
+            // 
+            // labelServiceIsRunning
+            // 
+            this.labelServiceIsRunning.Enabled = false;
+            this.labelServiceIsRunning.Location = new System.Drawing.Point(595, 112);
+            this.labelServiceIsRunning.Name = "labelServiceIsRunning";
+            this.labelServiceIsRunning.Size = new System.Drawing.Size(140, 32);
+            this.labelServiceIsRunning.TabIndex = 23;
+            this.labelServiceIsRunning.Text = "Service is running";
+            this.labelServiceIsRunning.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(738, 507);
+            this.ClientSize = new System.Drawing.Size(769, 592);
+            this.Controls.Add(this.labelServiceIsRunning);
+            this.Controls.Add(this.groupBox1);
+            this.Controls.Add(this.lblNextBackup);
+            this.Controls.Add(this.btnStopAutomaticService);
+            this.Controls.Add(this.btnTurnAutomaticServiceOn);
+            this.Controls.Add(this.dateTimePicker1);
             this.Controls.Add(this.cbExportRows);
             this.Controls.Add(this.cbExportTableStructure);
             this.Controls.Add(this.txtConnStr);
@@ -164,6 +261,8 @@
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "Form1";
             this.Text = "MySql Backup Restore All - www.mysqlbackup.net";
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -181,6 +280,14 @@
         private System.Windows.Forms.TextBox txtConnStr;
         private System.Windows.Forms.CheckBox cbExportTableStructure;
         private System.Windows.Forms.CheckBox cbExportRows;
+        private System.Windows.Forms.DateTimePicker dateTimePicker1;
+        private System.Windows.Forms.Button btnTurnAutomaticServiceOn;
+        private System.Windows.Forms.Button btnStopAutomaticService;
+        private System.Windows.Forms.Label lblNextBackup;
+        private System.Windows.Forms.RadioButton radioButtonDaily;
+        private System.Windows.Forms.RadioButton radioButtonWeekly;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.Label labelServiceIsRunning;
     }
 }
 
